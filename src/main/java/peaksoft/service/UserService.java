@@ -7,7 +7,6 @@ import peaksoft.dto.response.AuthenticationResponse;
 import peaksoft.dto.response.SimpleResponse;
 import peaksoft.dto.response.UserNotAcceptResponse;
 import peaksoft.dto.response.UserResponse;
-import peaksoft.entity.User;
 
 import java.util.List;
 

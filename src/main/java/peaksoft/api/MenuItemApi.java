@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import peaksoft.dto.request.MenuItemRequest;
+import peaksoft.dto.response.GlobalSearchResponse;
 import peaksoft.dto.response.MenuItemResponse;
+import peaksoft.dto.response.PaginationResponse;
 import peaksoft.dto.response.SimpleResponse;
 import peaksoft.service.MenuItemService;
 
@@ -22,24 +24,28 @@ public class MenuItemApi {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public List<MenuItemResponse> getAll(@PathVariable Long restaurantId){
-        return service.getAll(restaurantId);
+    public List<MenuItemResponse> getAll(@PathVariable Long restaurantId,
+                                         @RequestParam String ascOrDesc){
+        return service.getAll(restaurantId, ascOrDesc);
     }
 
     @PostMapping()
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF')")
-    public SimpleResponse save(@RequestBody MenuItemRequest request, @PathVariable Long restaurantId){
+    public SimpleResponse save(@RequestBody MenuItemRequest request,
+                               @PathVariable Long restaurantId){
         return service.save(restaurantId,request);
     }
 
     @GetMapping("/{chequeId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public MenuItemResponse finById(@PathVariable Long chequeId, @PathVariable Long restaurantId){
+    public MenuItemResponse finById(@PathVariable Long chequeId,
+                                    @PathVariable Long restaurantId){
         return service.finById(restaurantId,chequeId);
     }
 
     @GetMapping("/search")
-    public List<MenuItemResponse> search(@RequestParam String word, @PathVariable Long restaurantId) {
+    public List<? extends GlobalSearchResponse> search(@RequestParam(required = false) String word,
+                                             @PathVariable Long restaurantId) {
         return service.globalSearch(restaurantId,word);
     }
     @GetMapping("/filter")
@@ -50,12 +56,20 @@ public class MenuItemApi {
     @PutMapping("/{chequeId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF')")
     public SimpleResponse update(@PathVariable Long chequeId,
-                                 @RequestBody MenuItemRequest request, @PathVariable Long restaurantId){
+                                 @RequestBody MenuItemRequest request,
+                                 @PathVariable Long restaurantId){
         return service.update(restaurantId,chequeId,request);
     }
     @DeleteMapping("/{chequeId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF')")
-    public SimpleResponse delete(@PathVariable Long chequeId, @PathVariable Long restaurantId){
+    public SimpleResponse delete(@PathVariable Long chequeId,
+                                 @PathVariable Long restaurantId){
         return service.delete(restaurantId,chequeId);
+    }
+
+    @GetMapping("/pagination")
+    public PaginationResponse pagination(@RequestParam int page,
+                                         @RequestParam int size) {
+        return service.getPagination(page,size);
     }
 }

@@ -40,7 +40,9 @@ public class UserApi {
 
     @PutMapping("/{userId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public SimpleResponse update(@PathVariable Long restaurantId,@PathVariable Long userId, @RequestBody UserRequest request){
+    public SimpleResponse update(@PathVariable Long restaurantId,
+                                 @PathVariable Long userId,
+                                 @RequestBody UserRequest request){
         return service.update(restaurantId,userId,request);
     }
 

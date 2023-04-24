@@ -7,4 +7,5 @@ import java.time.LocalDate;
 
 public interface StopListRepository extends JpaRepository<StopList, Long> {
     StopList findByDate(LocalDate date);
+
 }

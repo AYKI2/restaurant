@@ -1,6 +1,5 @@
 package peaksoft.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -15,7 +14,6 @@ import peaksoft.config.jwt.JwtFilter;
 public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final JwtFilter jwtFilter;
-
     @Autowired
     public SecurityConfig(AuthenticationProvider authenticationProvider, JwtFilter jwtFilter) {
         this.authenticationProvider = authenticationProvider;
@@ -29,7 +27,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                 .requestMatchers("/api/{restaurantId}/users/signIn").permitAll()
                 .requestMatchers("/api/{restaurantId}/users/logIn").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest()
+                .permitAll()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -37,6 +36,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 
 }
 

@@ -5,7 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import peaksoft.dto.request.StopListRequest;
 import peaksoft.dto.response.SimpleResponse;
-import peaksoft.entity.StopList;
+import peaksoft.dto.response.StopListResponse;
 import peaksoft.service.StopListService;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class StopListApi {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public List<StopList> getAll(){
+    public List<StopListResponse> getAll(){
         return service.getAll();
     }
 
@@ -33,7 +33,7 @@ public class StopListApi {
 
     @GetMapping("/{stopList}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public StopList finById(@PathVariable Long stopList){
+    public StopListResponse finById(@PathVariable Long stopList){
         return service.finById(stopList);
     }
 

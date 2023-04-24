@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import peaksoft.dto.request.SubCategoryRequest;
 import peaksoft.dto.response.SimpleResponse;
 import peaksoft.dto.response.SubCategoryResponse;
-import peaksoft.entity.SubCategory;
 import peaksoft.service.SubCategoryService;
 
 import java.util.List;
@@ -22,8 +21,13 @@ public class SubCategoryApi {
 
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public List<SubCategory> getAll(@PathVariable Long restaurantId){
+    public List<SubCategoryResponse> getAll(@PathVariable Long restaurantId){
         return service.getAll(restaurantId);
+    }
+    @GetMapping("/filter/{categoryId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
+    public List<SubCategoryResponse> getAllByCategoryId(@PathVariable Long categoryId, @RequestParam String ascOrDesc){
+        return service.getAllByCategory(categoryId, ascOrDesc);
     }
 
     @PostMapping()
@@ -34,7 +38,7 @@ public class SubCategoryApi {
 
     @GetMapping("/{subCategoryId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF','WAITER')")
-    public SubCategory finById(@PathVariable Long restaurantId, @PathVariable Long subCategoryId){
+    public SubCategoryResponse finById(@PathVariable Long restaurantId, @PathVariable Long subCategoryId){
         return service.finById(restaurantId, subCategoryId);
     }
 

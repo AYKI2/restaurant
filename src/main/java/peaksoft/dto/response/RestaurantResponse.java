@@ -1,8 +1,5 @@
 package peaksoft.dto.response;
 
-import peaksoft.entity.MenuItem;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 public record RestaurantResponse(
@@ -11,7 +8,7 @@ public record RestaurantResponse(
         String location,
         String restType,
         int numberOfEmployees,
-        BigDecimal service,
-        List<MenuItem> menuItems
-) {
+        int service,
+        List<MenuItemResponse> menuItems
+) implements GlobalSearchResponse{
 }

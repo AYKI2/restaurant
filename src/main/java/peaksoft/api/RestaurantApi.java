@@ -1,5 +1,6 @@
 package peaksoft.api;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ public class RestaurantApi {
         return service.getAll();
     }
 
+    @Operation(summary = "This method save Restaurant", description = "this method has validation")
     @PostMapping()
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     public SimpleResponse save(@RequestBody RestaurantRequest request){

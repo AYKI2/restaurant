@@ -5,11 +5,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import peaksoft.dto.request.ChequeRequest;
 import peaksoft.dto.response.ChequeResponse;
+import peaksoft.dto.response.MenuItemResponse;
+import peaksoft.dto.response.PriceResponse;
 import peaksoft.dto.response.SimpleResponse;
 import peaksoft.entity.Cheque;
 import peaksoft.entity.MenuItem;
 import peaksoft.entity.Restaurant;
 import peaksoft.entity.User;
+import peaksoft.exceptions.BadRequestException;
+import peaksoft.exceptions.NotFoundException;
 import peaksoft.repository.ChequeRepository;
 import peaksoft.repository.MenuItemRepository;
 import peaksoft.repository.RestaurantRepository;
@@ -20,7 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +42,14 @@ public class ChequeServiceImpl implements ChequeService {
         for (Cheque cheque: cheques) {
             ChequeResponse chequeResponse = new ChequeResponse(
                     cheque.getEmployee().getFirstName() + " " + cheque.getEmployee().getLastName(),
-                    cheque.getMenuItems(),
+                    cheque.getMenuItems().stream().map(MenuItem::getName).collect(Collectors.toList()),
                     cheque.getCreatedAt(),
                     cheque.getPriceAverage(),
-                    cheque.getEmployee().getRestaurant().getService(),
-                    cheque.getPriceAverage().multiply(cheque.getEmployee().getRestaurant().getService())
+                    new BigDecimal(cheque.getEmployee().getRestaurant().getService()),
+                    cheque.getPriceAverage()
+                            .multiply(new BigDecimal(cheque.getEmployee().getRestaurant().getService()))
+                            .divide(new BigDecimal(100))
+                            .add(cheque.getPriceAverage())
             );
             chequeResponses.add(chequeResponse);
         }
@@ -62,23 +69,34 @@ public class ChequeServiceImpl implements ChequeService {
         }
         return "Total cost of user with id: "+userId+" = "+total;
     }
+    @Override
+    public String getAveragePrice(Long restaurantId) {
+        PriceResponse averagePrice = repository.getAveragePrice(restaurantId);
+        BigDecimal average = BigDecimal.valueOf(averagePrice.priceAverage().doubleValue() + (averagePrice.priceAverage().doubleValue() * averagePrice.service() / 100));
+        return "Restaurant average bill: " + average;
+    }
 
     @Override
     public SimpleResponse save(Long restaurantId, ChequeRequest request) {
         Cheque cheque = new Cheque();
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new NoSuchElementException("User with id: " + request.userId() + " not found!"));
+                        new NotFoundException("User with id: " + request.userId() + " not found!"));
         List<MenuItem> menuItems = new ArrayList<>();
+        double sum = 0;
         for (String name:request.menuItems()) {
             MenuItem menuItem = menuItemRepository.findByName(name)
                     .orElseThrow(()->
-                            new NoSuchElementException("MenuItem with name: "+name+" not found!"));
+                            new NotFoundException("MenuItem with name: "+name+" not found!"));
+            if(menuItem.getStopList().getDate().equals(LocalDate.now())){
+                throw new BadRequestException("The "+ menuItem.getName()+" is currently out of stock. Because of ("+menuItem.getStopList().getReason()+")");
+            }
+            sum += menuItem.getPrice().doubleValue();
             menuItems.add(menuItem);
         }
         cheque.setEmployee(user);
-        cheque.setCreatedAt(request.createdAt());
-        cheque.setPriceAverage(request.priceAverage());
+        cheque.setCreatedAt(LocalDate.now());
+        cheque.setPriceAverage(BigDecimal.valueOf(sum));
         cheque.setMenuItems(menuItems);
         repository.save(cheque);
         return new SimpleResponse("SAVE","Cheque successfully saved!");
@@ -88,18 +106,37 @@ public class ChequeServiceImpl implements ChequeService {
     public ChequeResponse finById(Long chequeId) {
         Cheque cheque = repository.findById(chequeId)
                 .orElseThrow(() ->
-                        new NoSuchElementException("Cheque with id: " + chequeId + " not found!"));
+                        new NotFoundException("Cheque with id: " + chequeId + " not found!"));
         Restaurant restaurant = restaurantRepository.findById(cheque.getEmployee().getRestaurant().getId())
                 .orElseThrow(() ->
-                        new NoSuchElementException("Restaurant with id: " + cheque.getEmployee().getRestaurant().getId() + " not found!"));
-        BigDecimal total = BigDecimal.valueOf(cheque.getPriceAverage().doubleValue() * restaurant.getService().doubleValue());
+                        new NotFoundException("Restaurant with id: " + cheque.getEmployee().getRestaurant().getId() + " not found!"));
+        BigDecimal total =  cheque.getPriceAverage()
+                .multiply(new BigDecimal(cheque.getEmployee().getRestaurant().getService()))
+                .divide(new BigDecimal(100))
+                .add(cheque.getPriceAverage());
+
         String fullName = cheque.getEmployee().getFirstName()+" "+cheque.getEmployee().getLastName();
+        List<MenuItem> menuItems = cheque.getMenuItems();
+        List<String> responses = new ArrayList<>();
+        for (MenuItem menuItem: menuItems) {
+            MenuItemResponse item = new MenuItemResponse(
+                    menuItem.getId(),
+                    menuItem.getName(),
+                    menuItem.getImage(),
+                    menuItem.getPrice(),
+                    menuItem.getDescription(),
+                    menuItem.isVegetarian(),
+                    menuItem.getSubCategory().getName()
+            );
+            responses.add(item.name());
+        }
+
         return new ChequeResponse(
                 fullName,
-                cheque.getMenuItems(),
+                responses,
                 cheque.getCreatedAt(),
                 cheque.getPriceAverage(),
-                restaurant.getService(),
+                new BigDecimal(restaurant.getService()),
                 total
         );
     }
@@ -111,21 +148,25 @@ public class ChequeServiceImpl implements ChequeService {
         }
         Cheque cheque = repository.findById(chequeId)
                 .orElseThrow(() ->
-                        new NoSuchElementException("Cheque with id: " + chequeId + " not found!"));
+                        new NotFoundException("Cheque with id: " + chequeId + " not found!"));
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new NoSuchElementException("User with id: " + request.userId() + " not found!"));
+                        new NotFoundException("User with id: " + request.userId() + " not found!"));
         List<MenuItem> menuItems = new ArrayList<>();
+        double sum = 0;
         for (String name:request.menuItems()) {
             MenuItem menuItem = menuItemRepository.findByName(name)
                     .orElseThrow(()->
-                            new NoSuchElementException("MenuItem with name: "+name+" not found!"));
+                            new NotFoundException("MenuItem with name: "+name+" not found!"));
+            if(menuItem.getStopList().getDate().equals(LocalDate.now())){
+                throw new BadRequestException("The "+ menuItem.getName()+" is currently out of stock. Because of ("+menuItem.getStopList().getReason()+")");
+            }
+            sum += menuItem.getPrice().doubleValue();
             menuItems.add(menuItem);
         }
         cheque.setEmployee(user);
-        cheque.setCreatedAt(request.createdAt());
         cheque.setMenuItems(menuItems);
-        cheque.setPriceAverage(request.priceAverage());
+        cheque.setPriceAverage(BigDecimal.valueOf(sum));
         return new SimpleResponse("UPDATE","Cheque with id: "+chequeId+" successfully updated!");
     }
 
@@ -138,3 +179,4 @@ public class ChequeServiceImpl implements ChequeService {
         return new SimpleResponse("DELETE","Cheque with id: "+chequeId+" successfully deleted!");
     }
 }
+

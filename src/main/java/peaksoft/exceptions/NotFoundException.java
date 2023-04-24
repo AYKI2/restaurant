@@ -1,12 +1,14 @@
 package peaksoft.exceptions;
 
 public class NotFoundException extends RuntimeException{
+    public NotFoundException() {
+    }
+
     public NotFoundException(String message) {
         super(message);
     }
 
-    @Override
-    public String getMessage() {
-        return super.getMessage();
+    public NotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

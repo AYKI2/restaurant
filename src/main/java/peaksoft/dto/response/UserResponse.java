@@ -15,5 +15,5 @@ public record UserResponse(
         Role role,
         int experience,
         String restaurant
-) {
+) implements GlobalSearchResponse{
 }

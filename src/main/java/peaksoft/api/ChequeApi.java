@@ -42,6 +42,11 @@ public class ChequeApi {
     public String getAllChequeByUser(@PathVariable Long userId, @PathVariable Long restaurantId){
         return service.getAllChequesByUser(userId);
     }
+    @GetMapping("/average")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public String getAveragePrice(@PathVariable Long restaurantId){
+        return service.getAveragePrice(restaurantId);
+    }
 
     @PutMapping("/{chequeId}")
     @PreAuthorize("hasAnyAuthority('ADMIN','CHEF')")

@@ -3,13 +3,16 @@ package peaksoft.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static jakarta.persistence.CascadeType.*;
 
+
 @Entity
 @Table(name = "sub_categories")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class SubCategory {
     @Id
@@ -17,12 +20,8 @@ public class SubCategory {
     @GeneratedValue(generator = "sub_category_id_gen", strategy = GenerationType.SEQUENCE)
     private Long id;
     private String name;
-    @ManyToOne(cascade = {DETACH,MERGE,PERSIST,REFRESH})
+    @ManyToOne(cascade = {DETACH, MERGE, PERSIST, REFRESH})
     private Category category;
     @OneToMany(cascade = {ALL}, mappedBy = "subCategory")
-    private List<MenuItem> menuItems;
-
-    public SubCategory(String name) {
-        this.name = name;
-    }
+    private List<MenuItem> menuItems = new ArrayList<>();
 }

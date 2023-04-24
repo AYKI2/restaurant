@@ -10,4 +10,11 @@ import java.util.Optional;
 
 public interface SubCategoryRepository extends JpaRepository<SubCategory, Long> {
     Optional<SubCategory> findByName(String name);
+    List<SubCategory> findByCategoryId(Long categoryId);
+    @Query("SELECT new peaksoft.dto.response.SubCategoryResponse(s.id,s.name,s.category.name) FROM SubCategory s")
+    List<SubCategoryResponse> getAll();
+    @Query("SELECT new peaksoft.dto.response.SubCategoryResponse(s.id,s.name,s.category.name) FROM SubCategory s where s.category.id = ?1 group by s.category.name order by s.name asc")
+    List<SubCategoryResponse> getAllByCategoryIdAsc(Long categoryId);
+    @Query("SELECT new peaksoft.dto.response.SubCategoryResponse(s.id,s.name,s.category.name) FROM SubCategory s where s.category.id = ?1 group by s.category.name order by s.name desc")
+    List<SubCategoryResponse> getAllByCategoryIdDesc(Long categoryId);
 }

@@ -3,6 +3,7 @@ package peaksoft.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,7 +17,7 @@ public class Category {
     private Long id;
     private String name;
     @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "category")
-    private List<SubCategory> subCategories;
+    private List<SubCategory> subCategories = new ArrayList<>();
 
     public Category(String name) {
         this.name = name;
