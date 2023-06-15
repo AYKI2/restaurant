@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build-and-deploy:
     docker:
-      - image: circleci/node:14
+      - image: docker:20.10.9
     steps:
       - checkout
       - setup_remote_docker
@@ -12,17 +12,24 @@ jobs:
             docker build -t ayki2/restaurant-backend:v1 .
             echo "$DOCKERHUB_PASSWORD" | docker login --username ayki2 --password-stdin
             docker push ayki2/restaurant-backend:v1
-      - run:
-          name: Install SSH And Configure
-          command: |
-            echo $SSH_PRIVATE_KEY | base64 --decode > ./iskhak.pem
-            chmod 400 iskhak.pem
-      - run:
-          name: Pull Image and Deploy
-          command: |
-            ssh -o "StrictHostKeyChecking=no" -i ./iskhak.pem ubuntu@$HOST
-            sudo docker pull ayki2/restaurant-backend:v1
-            sudo docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
+  pull-and-deploy:
+    docker:
+      - image: circleci/node:14
+        steps:
+          - checkout
+          - setup_remote_docker
+          - run:
+              name: Install SSH And Configure
+              command: |
+                echo $SSH_PRIVATE_KEY | base64 --decode > ./iskhak.pem
+                chmod 400 iskhak.pem
+          - run:
+              name: Pull Image and Deploy
+              command: |
+                ssh -o "StrictHostKeyChecking=no" -i ./iskhak.pem ubuntu@$HOST'
+                sudo docker pull ayki2/restaurant-backend:v1
+                sudo docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
+                '
 workflows:
   deploy:
     jobs:
@@ -30,3 +37,9 @@ workflows:
           filters:
             branches:
               only: main
+      - pull-and-deploy:
+          requires:
+            - build-and-push
+          filters:
+            branches:
+              only: master
