@@ -21,8 +21,8 @@ jobs:
           name: Pull Image and Deploy
           command: |
             ssh -o "StrictHostKeyChecking=no" -i ./iskhak.pem ubuntu@$HOST
-            docker pull ayki2/restaurant-backend:v1
-            docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
+            sudo docker pull ayki2/restaurant-backend:v1
+            sudo docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
 workflows:
   deploy:
     jobs:
