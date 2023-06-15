@@ -4,6 +4,7 @@ jobs:
   build-and-deploy:
     docker:
       - image: circleci/node:14
+        path: ./Dockerfile
     steps:
       - run:
           name: Build and Push Docker Image
