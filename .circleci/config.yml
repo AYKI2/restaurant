@@ -7,13 +7,10 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
-            # Build your Docker image
             docker build -t ayki2/restaurant-backend:v1 .
             
-            # Authenticate with DockerHub
             echo “$DOCKERHUB_PASSWORD” | docker login --username ayki2 --password-stdin
             
-            # Push the Docker image to DockerHub
             docker push ayki2/restaurant-backend:v1
       - run:
           name: Install SSH And Configure
@@ -23,13 +20,10 @@ jobs:
       - run:
           name: Pull Image and Deploy
           command: |
-            # SSH into the remote instance
               ssh -o “StrictHostKeyChecking=no” -i ./iskhak.pem ubuntu@$HOST
             
-            # Pull the latest image from DockerHub
             docker pull ayki2/restaurant-backend:v1
             
-            # Run the image on the remote instance
             docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
 workflows:
   deploy:
