@@ -1,4 +1,5 @@
 version: 2.1
+
 jobs:
   build-and-deploy:
     docker:
@@ -8,23 +9,22 @@ jobs:
           name: Build and Push Docker Image
           command: |
             docker build -t ayki2/restaurant-backend:v1 .
-            
-            echo “$DOCKERHUB_PASSWORD” | docker login --username ayki2 --password-stdin
-            
+            echo "$DOCKERHUB_PASSWORD" | docker login --username ayki2 --password-stdin
             docker push ayki2/restaurant-backend:v1
+
       - run:
           name: Install SSH And Configure
           command: |
             echo $SSH_PRIVATE_KEY | base64 --decode > ./iskhak.pem
             chmod 400 iskhak.pem
+
       - run:
           name: Pull Image and Deploy
           command: |
-              ssh -o “StrictHostKeyChecking=no” -i ./iskhak.pem ubuntu@$HOST
-            
+            ssh -o "StrictHostKeyChecking=no" -i ./iskhak.pem ubuntu@$HOST
             docker pull ayki2/restaurant-backend:v1
-            
             docker run -d -p 2020:2020 ayki2/restaurant-backend:v1
+
 workflows:
   deploy:
     jobs:
