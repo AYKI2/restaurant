@@ -33,10 +33,10 @@ jobs:
 workflows:
   deploy:
     jobs:
-      - build-and-deploy:
+      - build-and-push:
           filters:
             branches:
-              only: main
+              only: master
       - pull-and-deploy:
           requires:
             - build-and-push
