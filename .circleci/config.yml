@@ -3,8 +3,7 @@ version: 2.1
 jobs:
   build-and-deploy:
     docker:
-      - image: circleci/node:14
-        path: ./Dockerfile
+      - image: docker:20.10.9
     steps:
       - run:
           name: Build and Push Docker Image
