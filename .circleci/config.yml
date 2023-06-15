@@ -37,10 +37,10 @@ workflows:
       - build-and-push:
           filters:
             branches:
-              only: master
+              only: main
       - pull-and-deploy:
           requires:
             - build-and-push
           filters:
             branches:
-              only: master
+              only: main
